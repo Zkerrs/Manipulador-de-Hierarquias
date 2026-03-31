@@ -15,19 +15,9 @@
       <h1 class="title">Manipulador de Hierarquia</h1>
       <p class="subtitle">Visualizacao e manipulacao de hierarquias com navegacao em cascata por niveis</p>
     </div>
-    <div class="toolbar">
-      <button class="btn primary" id="expandAll">Expandir tudo</button>
-      <button class="btn" id="collapseAll">Recolher tudo</button>
-      <button class="btn" id="fillExample">Preencher exemplo</button>
-      <button class="btn" id="openReplaceModal">Localizar e substituir</button>
-      <button class="icon-btn" id="toggleTheme" aria-label="Alternar tema" title="Alternar tema">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
-      </button>
-      <span class="muted">Use as setas para abrir e fechar cada ramo da arvore.</span>
-      <span class="chip" id="nodeCount">0 itens</span>
-    </div>
-    <details class="import-panel" id="importPanel">
-      <summary>Importar hierarquia por texto</summary>
+    <div class="top-panels">
+      <div class="import-panel" id="importPanel">
+        <h3 class="panel-title">Importar hierarquia por texto</h3>
       <p>Grade estilo Excel: cole direto do Excel (Ctrl+V). Colunas: <strong>ID</strong>, <strong>DESCRICAO</strong>, <strong>PAI</strong>.</p>
       <div id="excelWrapper" class="excel-wrapper">
         <div class="excel-scroll">
@@ -53,7 +43,19 @@
         <button class="btn" id="clearInput">Limpar</button>
         <span class="status-text" id="importStatus">Aguardando texto da hierarquia.</span>
       </div>
-    </details>
+      </div>
+      <div class="toolbar panel-controls">
+        <button class="btn primary" id="expandAll">Expandir tudo</button>
+        <button class="btn" id="collapseAll">Recolher tudo</button>
+        <button class="btn" id="fillExample">Preencher exemplo</button>
+        <button class="btn" id="openReplaceModal">Localizar e substituir</button>
+        <button class="icon-btn" id="toggleTheme" aria-label="Alternar tema" title="Alternar tema">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+        <span class="muted">Use as setas para abrir e fechar cada ramo da arvore.</span>
+        <span class="chip" id="nodeCount">0 itens</span>
+      </div>
+    </div>
     <div id="replaceModal" class="modal-overlay" aria-hidden="true">
       <div class="modal-card">
         <div class="modal-head">

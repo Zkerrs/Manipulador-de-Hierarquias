@@ -423,7 +423,6 @@ document.getElementById("fillExample").addEventListener("click", () => {
     { id: "HIER_0300", label: "DESPESAS", parentId: "HIER_0100" }
   ];
   preencherGradeComItens(exemplo);
-  document.getElementById("importPanel").open = true;
   document.getElementById("importStatus").textContent = "Exemplo preenchido. Clique em Aplicar hierarquia.";
   salvarEstadoNoHistorico();
 });
