@@ -50,7 +50,7 @@ body {
   display: grid;
   grid-template-columns: minmax(540px, 1.2fr) minmax(360px, 0.8fr);
   gap: 10px;
-  padding: 10px 12px 0;
+  padding: 10px 12px 10px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -141,6 +141,7 @@ body {
 }
 
 .table-area { overflow: auto; height: 100%; flex: 1; }
+.table-area { margin-top: 6px; }
 
 .report-table {
   border-collapse: separate;
