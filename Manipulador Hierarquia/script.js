@@ -36,6 +36,104 @@ const historicoGrade = [];
 const refazerGrade = [];
 let celulaAtiva = null;
 const chaveTema = "manipulador-hierarquia-tema";
+const chaveIdioma = "manipulador-hierarquia-idioma";
+let idiomaAtual = localStorage.getItem(chaveIdioma) === "en" ? "en" : "pt";
+
+const I18N = {
+  pt: {
+    title: "Manipulador de Hierarquia",
+    subtitle: "Visualizacao e manipulacao de hierarquias com navegacao em cascata por niveis",
+    importTitle: "Importar hierarquia por texto",
+    importHint: "Grade estilo Excel: cole direto do Excel (Ctrl+V). Colunas: <strong>ID</strong>, <strong>DESCRICAO</strong>, <strong>PAI</strong>.",
+    toolbarHint: "Use as setas para abrir e fechar cada ramo da arvore.",
+    btnExpand: "Expandir tudo",
+    btnCollapse: "Recolher tudo",
+    btnExample: "Preencher exemplo",
+    btnExport: "Exportar Excel",
+    btnReplaceOpen: "Localizar e substituir",
+    btnApply: "Aplicar hierarquia",
+    btnClear: "Limpar",
+    replaceTitle: "Localizar e substituir",
+    replaceHint: "Substitui em massa os indicadores carregados, sem editar item por item.",
+    replaceBtn: "Substituir tudo",
+    findPh: "Localizar (ex: PAGTO)",
+    replPh: "Substituir por (ex: PAGAMENTO)",
+    labelIds: "Aplicar nos codigos (ID)",
+    labelLabels: "Aplicar nas descricoes",
+    month: "Mes",
+    indicator: "Ano/Mês",
+    items: "itens",
+    months: ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+  },
+  en: {
+    title: "Hierarchy Manager",
+    subtitle: "View and edit hierarchies with cascade navigation by levels",
+    importTitle: "Import hierarchy from text",
+    importHint: "Excel-like grid: paste directly from Excel (Ctrl+V). Columns: <strong>ID</strong>, <strong>DESCRIPTION</strong>, <strong>PARENT</strong>.",
+    toolbarHint: "Use arrows to open and close each branch.",
+    btnExpand: "Expand all",
+    btnCollapse: "Collapse all",
+    btnExample: "Fill sample",
+    btnExport: "Export Excel",
+    btnReplaceOpen: "Find and replace",
+    btnApply: "Apply hierarchy",
+    btnClear: "Clear",
+    replaceTitle: "Find and replace",
+    replaceHint: "Bulk replace indicator values without editing one by one.",
+    replaceBtn: "Replace all",
+    findPh: "Find (e.g. PAY)",
+    replPh: "Replace with (e.g. PAYMENT)",
+    labelIds: "Apply to codes (ID)",
+    labelLabels: "Apply to descriptions",
+    month: "Month",
+    indicator: "Year/Month",
+    items: "items",
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  }
+};
+
+function t(chave) {
+  return I18N[idiomaAtual][chave] ?? chave;
+}
+
+function aplicarIdioma(idioma) {
+  idiomaAtual = idioma === "en" ? "en" : "pt";
+  localStorage.setItem(chaveIdioma, idiomaAtual);
+
+  const byIdText = (id, valor) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = valor;
+  };
+
+  byIdText("titleText", t("title"));
+  byIdText("subtitleText", t("subtitle"));
+  byIdText("importTitleText", t("importTitle"));
+  const importHint = document.getElementById("importHintText");
+  if (importHint) importHint.innerHTML = t("importHint");
+  byIdText("toolbarHintText", t("toolbarHint"));
+  byIdText("expandAll", t("btnExpand"));
+  byIdText("collapseAll", t("btnCollapse"));
+  byIdText("fillExample", t("btnExample"));
+  byIdText("exportExcel", t("btnExport"));
+  byIdText("openReplaceModal", t("btnReplaceOpen"));
+  byIdText("applyHierarchy", t("btnApply"));
+  byIdText("clearInput", t("btnClear"));
+  byIdText("replaceModalTitle", t("replaceTitle"));
+  byIdText("replaceModalHint", t("replaceHint"));
+  byIdText("replaceAll", t("replaceBtn"));
+
+  const find = document.getElementById("findText");
+  const repl = document.getElementById("replaceText");
+  if (find) find.placeholder = t("findPh");
+  if (repl) repl.placeholder = t("replPh");
+
+  const labels = document.querySelectorAll(".replace-options label");
+  if (labels[0]) labels[0].childNodes[1].nodeValue = ` ${t("labelIds")}`;
+  if (labels[1]) labels[1].childNodes[1].nodeValue = ` ${t("labelLabels")}`;
+
+  renderHeader();
+  render();
+}
 
 function gerarColunasAnoMes() {
   const anoAtual = new Date().getFullYear();
@@ -53,17 +151,14 @@ function renderHeader() {
   headerRow.innerHTML = "";
 
   const thMes = document.createElement("th");
-  thMes.textContent = "Mes";
+  thMes.textContent = t("month");
   monthRow.appendChild(thMes);
 
   const thIndicador = document.createElement("th");
-  thIndicador.textContent = "Indicador";
+  thIndicador.textContent = t("indicator");
   headerRow.appendChild(thIndicador);
 
-  const nomesMeses = [
-    "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
+  const nomesMeses = t("months");
 
   for (let i = 0; i < colunasAnoMes.length; i++) {
     const thMesNome = document.createElement("th");
@@ -289,7 +384,7 @@ function render() {
   const tbody = document.getElementById("rows");
   tbody.innerHTML = "";
   const rows = flatten(hierarchy);
-  document.getElementById("nodeCount").textContent = `${rows.length} itens`;
+  document.getElementById("nodeCount").textContent = `${rows.length} ${t("items")}`;
 
   for (const row of rows) {
     if (!row.visible) continue;
@@ -515,6 +610,53 @@ document.getElementById("replaceAll").addEventListener("click", () => {
   salvarEstadoNoHistorico();
 });
 
+document.getElementById("exportExcel").addEventListener("click", () => {
+  const status = document.getElementById("importStatus");
+  const popupErro = document.getElementById("popupErro");
+  const popupSucesso = document.getElementById("popupSucesso");
+  const linhasGrade = obterMatrizDaGrade();
+
+  const linhasParaExportar = linhasGrade.length
+    ? linhasGrade
+    : itensDaHierarquia.map((item) => [item.id, item.label, item.parentId ?? "<root>"]);
+
+  if (!linhasParaExportar.length) {
+    status.textContent = "Erro: nao ha dados para exportar.";
+    popupSucesso.classList.remove("show");
+    popupErro.textContent = "Erro: nao ha hierarquia para exportar.";
+    popupErro.classList.add("show");
+    clearTimeout(popupErro._timer);
+    popupErro._timer = setTimeout(() => popupErro.classList.remove("show"), 3800);
+    return;
+  }
+
+  if (typeof XLSX === "undefined") {
+    status.textContent = "Erro: biblioteca de Excel nao carregada.";
+    popupSucesso.classList.remove("show");
+    popupErro.textContent = "Erro: biblioteca de Excel nao carregada.";
+    popupErro.classList.add("show");
+    clearTimeout(popupErro._timer);
+    popupErro._timer = setTimeout(() => popupErro.classList.remove("show"), 3800);
+    return;
+  }
+
+  const aoa = [["ID", "DESCRICAO", "PAI"], ...linhasParaExportar];
+  const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Hierarquia");
+
+  const descricaoPrimeiro = (linhasParaExportar[0]?.[1] || "hierarquia")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .trim()
+    .replace(/\s+/g, "_");
+  const nomeBase = descricaoPrimeiro || "hierarquia";
+  const nomeArquivo = `${nomeBase}_Hierarquia.xlsx`;
+  XLSX.writeFile(workbook, nomeArquivo);
+  status.textContent = `Excel exportado com sucesso: ${nomeArquivo}`;
+});
+
 function atualizarIconeTema() {
   const icone = document.getElementById("themeIcon");
   if (!icone) return;
@@ -538,6 +680,13 @@ if (botaoTema) {
   botaoTema.addEventListener("click", () => {
     const escuro = document.body.classList.contains("dark");
     aplicarTema(escuro ? "light" : "dark");
+  });
+}
+
+const botaoIdioma = document.getElementById("toggleLanguage");
+if (botaoIdioma) {
+  botaoIdioma.addEventListener("click", () => {
+    aplicarIdioma(idiomaAtual === "pt" ? "en" : "pt");
   });
 }
 
@@ -586,5 +735,6 @@ document.addEventListener("keydown", (event) => {
 
 salvarEstadoNoHistorico();
 aplicarTema(localStorage.getItem(chaveTema) === "dark" ? "dark" : "light");
+aplicarIdioma(idiomaAtual);
 renderHeader();
 render();
