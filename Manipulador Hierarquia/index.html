@@ -30,21 +30,23 @@
       <summary>Importar hierarquia por texto</summary>
       <p>Grade estilo Excel: cole direto do Excel (Ctrl+V). Colunas: <strong>ID</strong>, <strong>DESCRICAO</strong>, <strong>PAI</strong>.</p>
       <div id="excelWrapper" class="excel-wrapper">
-        <table class="excel-grid">
-          <colgroup>
-            <col id="colId" />
-            <col id="colDescricao" />
-            <col id="colPai" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>DESCRICAO</th>
-              <th>PAI</th>
-            </tr>
-          </thead>
-          <tbody id="hierarchyGridBody"></tbody>
-        </table>
+        <div class="excel-scroll">
+          <table class="excel-grid">
+            <colgroup>
+              <col id="colId" />
+              <col id="colDescricao" />
+              <col id="colPai" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>DESCRICAO</th>
+                <th>PAI</th>
+              </tr>
+            </thead>
+            <tbody id="hierarchyGridBody"></tbody>
+          </table>
+        </div>
       </div>
       <div class="import-actions">
         <button class="btn primary" id="applyHierarchy">Aplicar hierarquia</button>

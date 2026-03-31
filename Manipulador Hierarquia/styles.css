@@ -31,8 +31,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(27, 39, 71, 0.08);
-  backdrop-filter: blur(4px);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
 }
@@ -215,11 +214,50 @@ body {
 .excel-wrapper {
   border: 1px solid #d8e2f2;
   border-radius: 10px;
-  overflow: auto;
+  overflow: hidden;
   max-height: 240px;
   background: #fff;
   display: flex;
   justify-content: center;
+}
+
+.excel-scroll {
+  width: 100%;
+  max-height: 240px;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* Scrollbar mais limpa e integrada */
+.table-area,
+.excel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #9aa9c2 #eef2f8;
+}
+
+.table-area::-webkit-scrollbar,
+.excel-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.table-area::-webkit-scrollbar-track,
+.excel-scroll::-webkit-scrollbar-track {
+  background: #eef2f8;
+  border-radius: 999px;
+}
+
+.table-area::-webkit-scrollbar-thumb,
+.excel-scroll::-webkit-scrollbar-thumb {
+  background: #a6b4cc;
+  border-radius: 999px;
+  border: 2px solid #eef2f8;
+}
+
+.table-area::-webkit-scrollbar-thumb:hover,
+.excel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #7f94b6;
 }
 
 .excel-grid {
@@ -303,7 +341,7 @@ body {
   background: #fff;
   border: 1px solid #dbe3f2;
   border-radius: 14px;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+  box-shadow: none;
   padding: 14px;
 }
 
@@ -320,7 +358,7 @@ body {
 }
 
 .status-text { font-size: 12px; color: #475569; }
-.input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16); }
+.input-error { border-color: #ef4444 !important; box-shadow: none; }
 
 .popup-erro, .popup-sucesso {
   position: fixed;
@@ -380,7 +418,7 @@ body.dark .modal-card {
 }
 
 body.dark .wrap {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: none;
 }
 
 body.dark .btn,
@@ -448,7 +486,8 @@ body.dark .excel-grid input {
 
 body.dark .excel-grid input:focus {
   background: #2a313b;
-  box-shadow: inset 0 0 0 1px #5b9aff;
+  box-shadow: none;
+  border: 1px solid #5b9aff;
 }
 
 body.dark .replace-grid input {
@@ -460,7 +499,7 @@ body.dark .replace-grid input {
 
 body.dark .replace-grid input:focus {
   border-color: #5b9aff;
-  box-shadow: 0 0 0 2px rgba(91, 154, 255, 0.24);
+  box-shadow: none;
 }
 
 body.dark .toggle {
@@ -491,4 +530,25 @@ body.dark .level-6 .node-label { color: #bdc7d6; font-weight: 500; }
 
 body.dark .muted {
   color: #aab3bf;
+}
+
+body.dark .table-area,
+body.dark .excel-scroll {
+  scrollbar-color: #5b6575 #252b33;
+}
+
+body.dark .table-area::-webkit-scrollbar-track,
+body.dark .excel-scroll::-webkit-scrollbar-track {
+  background: #252b33;
+}
+
+body.dark .table-area::-webkit-scrollbar-thumb,
+body.dark .excel-scroll::-webkit-scrollbar-thumb {
+  background: #5f6a7a;
+  border-color: #252b33;
+}
+
+body.dark .table-area::-webkit-scrollbar-thumb:hover,
+body.dark .excel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #748195;
 }
