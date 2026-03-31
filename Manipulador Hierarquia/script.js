@@ -35,6 +35,7 @@ const openNodes = new Set(["FLUXO_CAIXA_0000"]);
 const historicoGrade = [];
 const refazerGrade = [];
 let celulaAtiva = null;
+const chaveTema = "manipulador-hierarquia-tema";
 
 function gerarColunasAnoMes() {
   const anoAtual = new Date().getFullYear();
@@ -515,6 +516,32 @@ document.getElementById("replaceAll").addEventListener("click", () => {
   salvarEstadoNoHistorico();
 });
 
+function atualizarIconeTema() {
+  const icone = document.getElementById("themeIcon");
+  if (!icone) return;
+  const escuro = document.body.classList.contains("dark");
+  icone.classList.remove("fa-moon", "fa-sun");
+  icone.classList.add(escuro ? "fa-sun" : "fa-moon");
+}
+
+function aplicarTema(tema) {
+  if (tema === "dark") {
+    document.body.classList.add("dark");
+  } else {
+    document.body.classList.remove("dark");
+  }
+  localStorage.setItem(chaveTema, tema);
+  atualizarIconeTema();
+}
+
+const botaoTema = document.getElementById("toggleTheme");
+if (botaoTema) {
+  botaoTema.addEventListener("click", () => {
+    const escuro = document.body.classList.contains("dark");
+    aplicarTema(escuro ? "light" : "dark");
+  });
+}
+
 criarGradeHierarquia();
 ajustarLarguraColunasGrade();
 document.addEventListener("paste", aplicarPasteExcel);
@@ -559,5 +586,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 salvarEstadoNoHistorico();
+aplicarTema(localStorage.getItem(chaveTema) === "dark" ? "dark" : "light");
 renderHeader();
 render();

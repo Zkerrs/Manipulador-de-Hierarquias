@@ -84,6 +84,26 @@ body {
 
 .btn.primary:hover { color: #fff; box-shadow: 0 10px 18px rgba(79, 70, 229, 0.28); }
 
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: 140ms ease;
+}
+
+.icon-btn:hover {
+  border-color: #60a5fa;
+  color: #2563eb;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.18);
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -337,4 +357,138 @@ body {
 @keyframes slideIn {
   from { transform: translateY(-8px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+body.dark {
+  --bg-1: #171a1f;
+  --panel: #20242b;
+  --line: #343a43;
+  --line-soft: #2d333c;
+  --text: #e6e9ef;
+  --muted: #a9b0bb;
+  --head: #2a3038;
+  --accent: #3b82f6;
+  --accent-2: #3b82f6;
+  background: #171a1f;
+}
+
+body.dark .header,
+body.dark .toolbar,
+body.dark .import-panel,
+body.dark .modal-card {
+  background: #22272f;
+}
+
+body.dark .wrap {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+body.dark .btn,
+body.dark .icon-btn,
+body.dark .replace-grid input,
+body.dark .excel-wrapper,
+body.dark .excel-grid input,
+body.dark .close-modal {
+  background: #252a32;
+  color: #e8ecf3;
+  border-color: #3f4651;
+}
+
+body.dark .btn.primary {
+  background: #3b82f6;
+  color: #f8fbff;
+}
+
+body.dark .btn:hover,
+body.dark .icon-btn:hover {
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+body.dark .report-table thead th {
+  background: #2d333c;
+  color: #e9edf4;
+  border-bottom-color: #434b57;
+}
+
+body.dark .report-table tbody td {
+  color: #cfd5df;
+  border-right-color: #333a45;
+  border-bottom-color: #303742;
+}
+
+body.dark .report-table tbody td:first-child {
+  background: #252b34;
+  color: #e5eaf2;
+}
+
+body.dark .report-table tbody tr:hover td {
+  background: #2b313a;
+}
+
+body.dark .report-table tbody tr:hover td:first-child {
+  background: #313842;
+}
+
+body.dark .excel-grid th {
+  background: #2f353e;
+  color: #e8edf4;
+  border-color: #414954;
+}
+
+body.dark .excel-grid td {
+  border-color: #3a424e;
+}
+
+body.dark .excel-grid input {
+  background: #242a32;
+  color: #edf2f8;
+  caret-color: #edf2f8;
+}
+
+body.dark .excel-grid input:focus {
+  background: #2a313b;
+  box-shadow: inset 0 0 0 1px #5b9aff;
+}
+
+body.dark .replace-grid input {
+  background: #242a32;
+  color: #edf2f8;
+  caret-color: #edf2f8;
+  border-color: #434b57;
+}
+
+body.dark .replace-grid input:focus {
+  border-color: #5b9aff;
+  box-shadow: 0 0 0 2px rgba(91, 154, 255, 0.24);
+}
+
+body.dark .toggle {
+  background: #2c333d;
+  color: #cfd7e4;
+  border-color: #434b58;
+}
+
+body.dark .toggle:hover {
+  color: #7fb1ff;
+  border-color: #7fb1ff;
+}
+
+body.dark .chip {
+  background: #2a3039;
+  border-color: #3f4753;
+  color: #dce3ee;
+}
+
+/* Evita azuis fortes nos nomes da hierarquia no dark */
+body.dark .level-0 .node-label { color: #e7ecf4; font-weight: 800; }
+body.dark .level-1 .node-label { color: #dce3ee; font-weight: 700; }
+body.dark .level-2 .node-label { color: #d2dae7; font-weight: 700; }
+body.dark .level-3 .node-label { color: #c8d1df; font-weight: 600; }
+body.dark .level-4 .node-label,
+body.dark .level-5 .node-label,
+body.dark .level-6 .node-label { color: #bdc7d6; font-weight: 500; }
+
+body.dark .muted {
+  color: #aab3bf;
 }

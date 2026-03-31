@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hierarquia de Relatorio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -19,6 +20,9 @@
       <button class="btn" id="collapseAll">Recolher tudo</button>
       <button class="btn" id="fillExample">Preencher exemplo</button>
       <button class="btn" id="openReplaceModal">Localizar e substituir</button>
+      <button class="icon-btn" id="toggleTheme" aria-label="Alternar tema" title="Alternar tema">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
       <span class="muted">Use as setas para abrir e fechar cada ramo da arvore.</span>
       <span class="chip" id="nodeCount">0 itens</span>
     </div>
