@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hierarquia de Relatorio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="popupErro" class="popup-erro" role="alert" aria-live="assertive"></div>
+  <div id="popupSucesso" class="popup-sucesso" role="status" aria-live="polite"></div>
+  <div class="wrap">
+    <div class="header">
+      <h1 class="title">Manipulador de Hierarquia</h1>
+      <p class="subtitle">Visualizacao e manipulacao de hierarquias com navegacao em cascata por niveis</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" id="expandAll">Expandir tudo</button>
+      <button class="btn" id="collapseAll">Recolher tudo</button>
+      <button class="btn" id="fillExample">Preencher exemplo</button>
+      <button class="btn" id="openReplaceModal">Localizar e substituir</button>
+      <span class="muted">Use as setas para abrir e fechar cada ramo da arvore.</span>
+      <span class="chip" id="nodeCount">0 itens</span>
+    </div>
+    <details class="import-panel" id="importPanel">
+      <summary>Importar hierarquia por texto</summary>
+      <p>Grade estilo Excel: cole direto do Excel (Ctrl+V). Colunas: <strong>ID</strong>, <strong>DESCRICAO</strong>, <strong>PAI</strong>.</p>
+      <div id="excelWrapper" class="excel-wrapper">
+        <table class="excel-grid">
+          <colgroup>
+            <col id="colId" />
+            <col id="colDescricao" />
+            <col id="colPai" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>DESCRICAO</th>
+              <th>PAI</th>
+            </tr>
+          </thead>
+          <tbody id="hierarchyGridBody"></tbody>
+        </table>
+      </div>
+      <div class="import-actions">
+        <button class="btn primary" id="applyHierarchy">Aplicar hierarquia</button>
+        <button class="btn" id="clearInput">Limpar</button>
+        <span class="status-text" id="importStatus">Aguardando texto da hierarquia.</span>
+      </div>
+    </details>
+    <div id="replaceModal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 class="modal-title">Localizar e substituir</h3>
+          <button class="close-modal" id="closeReplaceModal" aria-label="Fechar">×</button>
+        </div>
+        <p class="muted">Substitui em massa os indicadores carregados, sem editar item por item.</p>
+        <div class="replace-grid">
+          <input id="findText" type="text" placeholder="Localizar (ex: PAGTO)" />
+          <input id="replaceText" type="text" placeholder="Substituir por (ex: PAGAMENTO)" />
+          <button class="btn primary" id="replaceAll">Substituir tudo</button>
+        </div>
+        <div class="replace-options">
+          <label><input type="checkbox" id="replaceInIds" checked /> Aplicar nos codigos (ID)</label>
+          <label><input type="checkbox" id="replaceInLabels" checked /> Aplicar nas descricoes</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-area">
+      <table class="report-table">
+        <thead>
+          <tr id="monthRow">
+            <th>Mes</th>
+          </tr>
+          <tr id="headerRow">
+            <th>Indicador</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
