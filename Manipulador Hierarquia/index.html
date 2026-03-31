@@ -52,7 +52,13 @@
         <div class="toolbar-group">
           <button class="btn" id="fillExample">Preencher exemplo</button>
           <button class="btn" id="exportExcel">Exportar Excel</button>
+          <button class="btn" id="validateHierarchy">Validar hierarquia</button>
           <button class="btn" id="openReplaceModal">Localizar e substituir</button>
+        </div>
+        <div class="toolbar-group">
+          <input class="toolbar-input" id="searchId" type="text" placeholder="Buscar ID" />
+          <input class="toolbar-input" id="searchDesc" type="text" placeholder="Buscar Descrição" />
+          <span class="health-chip" id="healthIndicator">0 linhas válidas | 0 com erro</span>
         </div>
         <div class="toolbar-group toolbar-group-info">
           <button class="icon-btn" id="toggleLanguage" aria-label="Alternar idioma" title="Alternar idioma">
@@ -82,6 +88,16 @@
           <label><input type="checkbox" id="replaceInIds" checked /> Aplicar nos codigos (ID)</label>
           <label><input type="checkbox" id="replaceInLabels" checked /> Aplicar nas descricoes</label>
         </div>
+      </div>
+    </div>
+    <div id="validationModal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 class="modal-title">Relatório de validação</h3>
+          <button class="close-modal" id="closeValidationModal" aria-label="Fechar">×</button>
+        </div>
+        <p class="muted" id="validationSummary">Sem validação executada.</p>
+        <ul id="validationList" class="validation-list"></ul>
       </div>
     </div>
 

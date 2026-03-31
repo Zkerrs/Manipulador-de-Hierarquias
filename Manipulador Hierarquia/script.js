@@ -25,6 +25,19 @@ function buildHierarchy(items) {
   return roots;
 }
 
+function coletarErrosDePai(itens) {
+  const ids = new Set(itens.map((item) => item.id));
+  const erros = [];
+  for (let i = 0; i < itens.length; i++) {
+    const item = itens[i];
+    if (!item.parentId) continue;
+    if (!ids.has(item.parentId)) {
+      erros.push(`Linha ${i + 1}: pai inexistente '${item.parentId}' para ID '${item.id}'.`);
+    }
+  }
+  return erros;
+}
+
 let itensDaHierarquia = Array.isArray(window.HIERARQUIA_ITENS) && window.HIERARQUIA_ITENS.length
   ? window.HIERARQUIA_ITENS
   : hierarchyItems;
@@ -38,6 +51,11 @@ let celulaAtiva = null;
 const chaveTema = "manipulador-hierarquia-tema";
 const chaveIdioma = "manipulador-hierarquia-idioma";
 let idiomaAtual = localStorage.getItem(chaveIdioma) === "en" ? "en" : "pt";
+let selecionando = false;
+let ancoraSelecao = null;
+const celulasSelecionadas = new Set();
+let filtroId = "";
+let filtroDesc = "";
 
 const I18N = {
   pt: {
@@ -50,9 +68,14 @@ const I18N = {
     btnCollapse: "Recolher tudo",
     btnExample: "Preencher exemplo",
     btnExport: "Exportar Excel",
+    btnValidate: "Validar hierarquia",
     btnReplaceOpen: "Localizar e substituir",
     btnApply: "Aplicar hierarquia",
     btnClear: "Limpar",
+    searchIdPh: "Buscar ID",
+    searchDescPh: "Buscar Descrição",
+    healthDefault: "0 linhas válidas | 0 com erro",
+    validationTitle: "Relatório de validação",
     replaceTitle: "Localizar e substituir",
     replaceHint: "Substitui em massa os indicadores carregados, sem editar item por item.",
     replaceBtn: "Substituir tudo",
@@ -75,9 +98,14 @@ const I18N = {
     btnCollapse: "Collapse all",
     btnExample: "Fill sample",
     btnExport: "Export Excel",
+    btnValidate: "Validate hierarchy",
     btnReplaceOpen: "Find and replace",
     btnApply: "Apply hierarchy",
     btnClear: "Clear",
+    searchIdPh: "Search ID",
+    searchDescPh: "Search Description",
+    healthDefault: "0 valid rows | 0 with error",
+    validationTitle: "Validation report",
     replaceTitle: "Find and replace",
     replaceHint: "Bulk replace indicator values without editing one by one.",
     replaceBtn: "Replace all",
@@ -115,6 +143,7 @@ function aplicarIdioma(idioma) {
   byIdText("collapseAll", t("btnCollapse"));
   byIdText("fillExample", t("btnExample"));
   byIdText("exportExcel", t("btnExport"));
+  byIdText("validateHierarchy", t("btnValidate"));
   byIdText("openReplaceModal", t("btnReplaceOpen"));
   byIdText("applyHierarchy", t("btnApply"));
   byIdText("clearInput", t("btnClear"));
@@ -126,6 +155,12 @@ function aplicarIdioma(idioma) {
   const repl = document.getElementById("replaceText");
   if (find) find.placeholder = t("findPh");
   if (repl) repl.placeholder = t("replPh");
+  const searchIdInput = document.getElementById("searchId");
+  const searchDescInput = document.getElementById("searchDesc");
+  if (searchIdInput) searchIdInput.placeholder = t("searchIdPh");
+  if (searchDescInput) searchDescInput.placeholder = t("searchDescPh");
+  const validationTitle = document.querySelector("#validationModal .modal-title");
+  if (validationTitle) validationTitle.textContent = t("validationTitle");
 
   const labels = document.querySelectorAll(".replace-options label");
   if (labels[0]) labels[0].childNodes[1].nodeValue = ` ${t("labelIds")}`;
@@ -208,6 +243,7 @@ function criarGradeHierarquia(totalLinhas = 35) {
   const tbody = document.getElementById("hierarchyGridBody");
   tbody.innerHTML = "";
   adicionarLinhasGrade(totalLinhas);
+  limparSelecaoCelulas();
 }
 
 function adicionarLinhasGrade(quantidade) {
@@ -319,6 +355,93 @@ function ajustarLarguraColunasGrade() {
   }
 }
 
+function keyCelula(row, col) {
+  return `${row}:${col}`;
+}
+
+function parseKeyCelula(chave) {
+  const [r, c] = chave.split(":").map(Number);
+  return { row: r, col: c };
+}
+
+function getInputPorRowCol(row, col) {
+  return document.querySelector(`#hierarchyGridBody input[data-row="${row}"][data-col="${col}"]`);
+}
+
+function limparSelecaoCelulas() {
+  for (const chave of celulasSelecionadas) {
+    const { row, col } = parseKeyCelula(chave);
+    const input = getInputPorRowCol(row, col);
+    if (input?.parentElement) input.parentElement.classList.remove("selected-cell");
+  }
+  celulasSelecionadas.clear();
+}
+
+function aplicarSelecaoRetangular(inicio, fim) {
+  if (!inicio || !fim) return;
+  limparSelecaoCelulas();
+  const minRow = Math.min(inicio.row, fim.row);
+  const maxRow = Math.max(inicio.row, fim.row);
+  const minCol = Math.min(inicio.col, fim.col);
+  const maxCol = Math.max(inicio.col, fim.col);
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      const input = getInputPorRowCol(r, c);
+      if (!input) continue;
+      const chave = keyCelula(r, c);
+      celulasSelecionadas.add(chave);
+      if (input.parentElement) input.parentElement.classList.add("selected-cell");
+    }
+  }
+}
+
+function getSelecaoBounds() {
+  if (!celulasSelecionadas.size) return null;
+  let minRow = Infinity;
+  let maxRow = -Infinity;
+  let minCol = Infinity;
+  let maxCol = -Infinity;
+  for (const chave of celulasSelecionadas) {
+    const { row, col } = parseKeyCelula(chave);
+    minRow = Math.min(minRow, row);
+    maxRow = Math.max(maxRow, row);
+    minCol = Math.min(minCol, col);
+    maxCol = Math.max(maxCol, col);
+  }
+  return { minRow, maxRow, minCol, maxCol };
+}
+
+function matrizDaSelecao() {
+  const b = getSelecaoBounds();
+  if (!b) return [];
+  const linhas = [];
+  for (let r = b.minRow; r <= b.maxRow; r++) {
+    const linha = [];
+    for (let c = b.minCol; c <= b.maxCol; c++) {
+      const input = getInputPorRowCol(r, c);
+      linha.push(input ? input.value : "");
+    }
+    linhas.push(linha);
+  }
+  return linhas;
+}
+
+function textoDaSelecao() {
+  return matrizDaSelecao().map((l) => l.join("\t")).join("\n");
+}
+
+function aplicarMatrizEm(rowInicio, colInicio, matriz) {
+  garantirQuantidadeLinhas(rowInicio + matriz.length + 20);
+  for (let i = 0; i < matriz.length; i++) {
+    for (let j = 0; j < matriz[i].length; j++) {
+      const c = colInicio + j;
+      if (c > 2) continue;
+      const input = getInputPorRowCol(rowInicio + i, c);
+      if (input) input.value = matriz[i][j] ?? "";
+    }
+  }
+}
+
 function preencherGradeComItens(itens) {
   const totalNecessario = Math.max(35, itens.length + 8);
   criarGradeHierarquia(totalNecessario);
@@ -334,28 +457,53 @@ function preencherGradeComItens(itens) {
 
 function aplicarPasteExcel(event) {
   const alvo = event.target;
-  if (!(alvo instanceof HTMLInputElement) || !alvo.closest("#hierarchyGridBody")) return;
+  const alvoNaGrade = alvo instanceof HTMLInputElement && alvo.closest("#hierarchyGridBody");
+  if (!alvoNaGrade && celulasSelecionadas.size === 0) return;
 
   const texto = event.clipboardData?.getData("text");
   if (!texto) return;
 
   salvarEstadoNoHistorico();
   event.preventDefault();
-  const inicioRow = Number(alvo.dataset.row);
-  const inicioCol = Number(alvo.dataset.col);
-  const linhas = texto.replace(/\r/g, "").split("\n").filter((l) => l.length > 0);
-  garantirQuantidadeLinhas(inicioRow + linhas.length + 20);
+  const linhas = texto.replace(/\r/g, "").split("\n").filter((l) => l.length > 0).map((l) => l.split("\t").map((v) => v.trim()));
+  const bounds = getSelecaoBounds();
+  const inicioRow = bounds ? bounds.minRow : Number(alvo.dataset.row);
+  const inicioCol = bounds ? bounds.minCol : Number(alvo.dataset.col);
 
-  for (let i = 0; i < linhas.length; i++) {
-    const colunas = linhas[i].split("\t");
-    for (let j = 0; j < colunas.length; j++) {
-      const r = inicioRow + i;
-      const c = inicioCol + j;
-      if (c > 2) continue;
-      const input = document.querySelector(`#hierarchyGridBody input[data-row="${r}"][data-col="${c}"]`);
-      if (input) input.value = colunas[j].trim();
+  if (bounds) {
+    const linhasSelecao = bounds.maxRow - bounds.minRow + 1;
+    const colunasSelecao = bounds.maxCol - bounds.minCol + 1;
+    const linhasPaste = linhas.length;
+    const colunasPaste = Math.max(...linhas.map((l) => l.length));
+
+    // Comportamento estilo Excel: 1 celula copiada + bloco selecionado => replica em todo bloco.
+    if (linhasPaste === 1 && colunasPaste === 1) {
+      const valor = linhas[0][0] ?? "";
+      for (const chave of celulasSelecionadas) {
+        const { row, col } = parseKeyCelula(chave);
+        const input = getInputPorRowCol(row, col);
+        if (input) input.value = valor;
+      }
+      ajustarLarguraColunasGrade();
+      salvarEstadoNoHistorico();
+      return;
+    }
+
+    // Se tamanho do bloco copiado bater com o bloco selecionado, cola respeitando a area.
+    if (linhasPaste === linhasSelecao && colunasPaste === colunasSelecao) {
+      for (let r = 0; r < linhasSelecao; r++) {
+        for (let c = 0; c < colunasSelecao; c++) {
+          const input = getInputPorRowCol(bounds.minRow + r, bounds.minCol + c);
+          if (input) input.value = linhas[r]?.[c] ?? "";
+        }
+      }
+      ajustarLarguraColunasGrade();
+      salvarEstadoNoHistorico();
+      return;
     }
   }
+
+  aplicarMatrizEm(inicioRow, inicioCol, linhas);
   ajustarLarguraColunasGrade();
   salvarEstadoNoHistorico();
 }
@@ -384,10 +532,10 @@ function render() {
   const tbody = document.getElementById("rows");
   tbody.innerHTML = "";
   const rows = flatten(hierarchy);
-  document.getElementById("nodeCount").textContent = `${rows.length} ${t("items")}`;
+  const rowsFiltradas = aplicarFiltroRows(rows);
+  document.getElementById("nodeCount").textContent = `${rowsFiltradas.length} ${t("items")}`;
 
-  for (const row of rows) {
-    if (!row.visible) continue;
+  for (const row of rowsFiltradas) {
 
     const tr = document.createElement("tr");
     tr.className = `level-${row.level}`;
@@ -432,6 +580,33 @@ function render() {
 
     tbody.appendChild(tr);
   }
+}
+
+function aplicarFiltroRows(rows) {
+  const qId = filtroId.trim().toLowerCase();
+  const qDesc = filtroDesc.trim().toLowerCase();
+  if (!qId && !qDesc) return rows.filter((r) => r.visible);
+
+  const mapPorId = new Map(rows.map((r) => [r.id, r]));
+  const incluir = new Set();
+
+  for (const row of rows) {
+    if (!row.visible) continue;
+    const bateId = !qId || row.id.toLowerCase().includes(qId);
+    const bateDesc = !qDesc || row.label.toLowerCase().includes(qDesc);
+    if (!(bateId && bateDesc)) continue;
+
+    incluir.add(row.id);
+    let nivelPai = row.level - 1;
+    for (let i = rows.indexOf(row) - 1; i >= 0 && nivelPai >= 0; i--) {
+      if (rows[i].level === nivelPai) {
+        incluir.add(rows[i].id);
+        nivelPai--;
+      }
+    }
+  }
+
+  return rows.filter((r) => r.visible && incluir.has(r.id) && mapPorId.has(r.id));
 }
 
 function collectParentNodes(nodes, set) {
@@ -483,6 +658,7 @@ document.getElementById("applyHierarchy").addEventListener("click", () => {
   try {
     const linhasGrade = obterMatrizDaGrade();
     const novosItens = parseHierarchyRows(linhasGrade);
+    const errosDePai = coletarErrosDePai(novosItens);
     itensDaHierarquia = novosItens;
     hierarchy = buildHierarchy(itensDaHierarquia);
     openNodes.clear();
@@ -492,8 +668,13 @@ document.getElementById("applyHierarchy").addEventListener("click", () => {
     render();
     ajustarLarguraColunasGrade();
     excelWrapper.classList.remove("input-error");
-    status.textContent = `Hierarquia aplicada com sucesso (${novosItens.length} linhas).`;
-    mostrarPopupSucesso("Hierarquia valida e aplicada com sucesso.");
+    if (errosDePai.length) {
+      status.textContent = `Hierarquia aplicada com aviso: ${errosDePai.length} erro(s) de pai.`;
+      mostrarPopupErro(`Hierarquia aplicada com erro: ${errosDePai.length} pai(s) inexistente(s).`);
+    } else {
+      status.textContent = `Hierarquia aplicada com sucesso (${novosItens.length} linhas).`;
+      mostrarPopupSucesso("Hierarquia valida e aplicada com sucesso.");
+    }
   } catch (error) {
     excelWrapper.classList.add("input-error");
     status.textContent = `Erro: ${error.message}`;
@@ -610,6 +791,129 @@ document.getElementById("replaceAll").addEventListener("click", () => {
   salvarEstadoNoHistorico();
 });
 
+function validarHierarquiaCompleta() {
+  const linhas = obterMatrizDaGrade();
+  const erros = [];
+  const ids = new Map();
+  let qtdRoot = 0;
+
+  linhas.forEach((linha, idx) => {
+    const [id, descricao, pai] = linha.map((v) => (v || "").trim());
+    if (!id || !descricao) {
+      erros.push(`Linha ${idx + 1}: ID e DESCRIÇÃO são obrigatórios.`);
+    }
+    if (pai === "<root>") qtdRoot++;
+    if (id) {
+      if (!ids.has(id)) ids.set(id, []);
+      ids.get(id).push(idx + 1);
+    }
+  });
+
+  for (const [id, ocorrencias] of ids.entries()) {
+    if (ocorrencias.length > 1) {
+      erros.push(`ID duplicado '${id}' nas linhas: ${ocorrencias.join(", ")}.`);
+    }
+  }
+
+  linhas.forEach((linha, idx) => {
+    const [id, _descricao, pai] = linha.map((v) => (v || "").trim());
+    if (!id || !pai || pai === "<root>") return;
+    if (!ids.has(pai)) erros.push(`Linha ${idx + 1}: pai inexistente '${pai}'.`);
+  });
+
+  if (qtdRoot === 0) erros.push("Nenhuma linha com <root> foi encontrada.");
+
+  const paiDe = new Map();
+  linhas.forEach((linha) => {
+    const [id, _descricao, pai] = linha.map((v) => (v || "").trim());
+    if (id && pai && pai !== "<root>") paiDe.set(id, pai);
+  });
+  const visitando = new Set();
+  const visitado = new Set();
+  function detectarCiclo(id) {
+    if (visitando.has(id)) return true;
+    if (visitado.has(id)) return false;
+    visitando.add(id);
+    const pai = paiDe.get(id);
+    if (pai && paiDe.has(pai) && detectarCiclo(pai)) return true;
+    visitando.delete(id);
+    visitado.add(id);
+    return false;
+  }
+  for (const id of paiDe.keys()) {
+    if (detectarCiclo(id)) {
+      erros.push("Ciclo detectado na relação de pai/filho.");
+      break;
+    }
+  }
+
+  const linhasComErro = new Set();
+  for (const erro of erros) {
+    const m = erro.match(/Linha (\d+)/i);
+    if (m) linhasComErro.add(Number(m[1]));
+  }
+  const validas = Math.max(0, linhas.length - linhasComErro.size);
+  return { erros, total: linhas.length, validas, comErro: linhasComErro.size };
+}
+
+function atualizarIndicadorSaude(resultado) {
+  const health = document.getElementById("healthIndicator");
+  if (!health) return;
+  health.textContent = `${resultado.validas} linhas válidas | ${resultado.comErro} com erro`;
+}
+
+function mostrarRelatorioValidacao(resultado) {
+  const modal = document.getElementById("validationModal");
+  const resumo = document.getElementById("validationSummary");
+  const lista = document.getElementById("validationList");
+  if (!modal || !resumo || !lista) return;
+
+  atualizarIndicadorSaude(resultado);
+  resumo.textContent = `Total: ${resultado.total} | Válidas: ${resultado.validas} | Com erro: ${resultado.comErro}`;
+  lista.innerHTML = "";
+  if (!resultado.erros.length) {
+    const li = document.createElement("li");
+    li.textContent = "Nenhum erro encontrado. Hierarquia válida.";
+    lista.appendChild(li);
+  } else {
+    for (const erro of resultado.erros) {
+      const li = document.createElement("li");
+      li.textContent = erro;
+      lista.appendChild(li);
+    }
+  }
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+const botaoValidar = document.getElementById("validateHierarchy");
+if (botaoValidar) {
+  botaoValidar.addEventListener("click", () => {
+    const resultado = validarHierarquiaCompleta();
+    mostrarRelatorioValidacao(resultado);
+  });
+}
+
+const botaoFecharValidacao = document.getElementById("closeValidationModal");
+if (botaoFecharValidacao) {
+  botaoFecharValidacao.addEventListener("click", () => {
+    const modal = document.getElementById("validationModal");
+    if (!modal) return;
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+  });
+}
+
+const modalValidacao = document.getElementById("validationModal");
+if (modalValidacao) {
+  modalValidacao.addEventListener("click", (event) => {
+    if (event.target === modalValidacao) {
+      modalValidacao.classList.remove("show");
+      modalValidacao.setAttribute("aria-hidden", "true");
+    }
+  });
+}
+
 document.getElementById("exportExcel").addEventListener("click", () => {
   const status = document.getElementById("importStatus");
   const popupErro = document.getElementById("popupErro");
@@ -690,6 +994,21 @@ if (botaoIdioma) {
   });
 }
 
+const searchIdInput = document.getElementById("searchId");
+const searchDescInput = document.getElementById("searchDesc");
+if (searchIdInput) {
+  searchIdInput.addEventListener("input", () => {
+    filtroId = searchIdInput.value;
+    render();
+  });
+}
+if (searchDescInput) {
+  searchDescInput.addEventListener("input", () => {
+    filtroDesc = searchDescInput.value;
+    render();
+  });
+}
+
 criarGradeHierarquia();
 ajustarLarguraColunasGrade();
 document.addEventListener("paste", aplicarPasteExcel);
@@ -709,12 +1028,49 @@ document.addEventListener("focusin", (event) => {
     celulaAtiva = event.target;
   }
 });
-document.addEventListener("keydown", (event) => {
-  const ehCtrl = event.ctrlKey || event.metaKey;
-  if (!ehCtrl) return;
 
+document.addEventListener("mousedown", (event) => {
+  const alvo = event.target;
+  if (!(alvo instanceof HTMLInputElement) || !alvo.closest("#hierarchyGridBody")) return;
+  selecionando = true;
+  const row = Number(alvo.dataset.row);
+  const col = Number(alvo.dataset.col);
+  ancoraSelecao = { row, col };
+  aplicarSelecaoRetangular(ancoraSelecao, ancoraSelecao);
+});
+
+document.addEventListener("mouseover", (event) => {
+  if (!selecionando || !ancoraSelecao) return;
+  const alvo = event.target;
+  if (!(alvo instanceof HTMLInputElement) || !alvo.closest("#hierarchyGridBody")) return;
+  const row = Number(alvo.dataset.row);
+  const col = Number(alvo.dataset.col);
+  aplicarSelecaoRetangular(ancoraSelecao, { row, col });
+});
+
+document.addEventListener("mouseup", () => {
+  selecionando = false;
+});
+document.addEventListener("keydown", (event) => {
   const tecla = event.key.toLowerCase();
   const alvoNaGrade = event.target instanceof HTMLInputElement && event.target.closest("#hierarchyGridBody");
+  const ehCtrl = event.ctrlKey || event.metaKey;
+
+  // Só limpa o bloco selecionado quando o foco NÃO está digitando numa célula.
+  if ((tecla === "delete" || tecla === "backspace") && celulasSelecionadas.size && !alvoNaGrade) {
+    event.preventDefault();
+    salvarEstadoNoHistorico();
+    for (const chave of celulasSelecionadas) {
+      const { row, col } = parseKeyCelula(chave);
+      const input = getInputPorRowCol(row, col);
+      if (input) input.value = "";
+    }
+    ajustarLarguraColunasGrade();
+    salvarEstadoNoHistorico();
+    return;
+  }
+
+  if (!ehCtrl) return;
 
   if (tecla === "z") {
     // Desfaz globalmente, sem exigir foco na celula.
@@ -725,9 +1081,37 @@ document.addEventListener("keydown", (event) => {
   }
 
   if (tecla === "c" && alvoNaGrade) {
-    if (!celulaAtiva) return;
-    const textoSelecionado = celulaAtiva.value.substring(celulaAtiva.selectionStart ?? 0, celulaAtiva.selectionEnd ?? 0);
-    const valor = textoSelecionado || celulaAtiva.value;
+    let valor = "";
+    if (celulasSelecionadas.size) {
+      valor = textoDaSelecao();
+    } else if (celulaAtiva) {
+      const textoSelecionado = celulaAtiva.value.substring(celulaAtiva.selectionStart ?? 0, celulaAtiva.selectionEnd ?? 0);
+      valor = textoSelecionado || celulaAtiva.value;
+    }
+    if (!valor) return;
+    event.preventDefault();
+    navigator.clipboard.writeText(valor).catch(() => {});
+  }
+
+  if (tecla === "x" && alvoNaGrade) {
+    let valor = "";
+    if (celulasSelecionadas.size) {
+      valor = textoDaSelecao();
+      salvarEstadoNoHistorico();
+      for (const chave of celulasSelecionadas) {
+        const { row, col } = parseKeyCelula(chave);
+        const input = getInputPorRowCol(row, col);
+        if (input) input.value = "";
+      }
+      ajustarLarguraColunasGrade();
+      salvarEstadoNoHistorico();
+    } else if (celulaAtiva) {
+      valor = celulaAtiva.value;
+      salvarEstadoNoHistorico();
+      celulaAtiva.value = "";
+      salvarEstadoNoHistorico();
+    }
+    if (!valor) return;
     event.preventDefault();
     navigator.clipboard.writeText(valor).catch(() => {});
   }
@@ -735,6 +1119,8 @@ document.addEventListener("keydown", (event) => {
 
 salvarEstadoNoHistorico();
 aplicarTema(localStorage.getItem(chaveTema) === "dark" ? "dark" : "light");
+document.body.classList.remove("compact");
+localStorage.removeItem("manipulador-hierarquia-compacto");
 aplicarIdioma(idiomaAtual);
 renderHeader();
 render();
