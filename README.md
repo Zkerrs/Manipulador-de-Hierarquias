@@ -14,18 +14,6 @@ Ferramenta web **100% no navegador** para importar hierarquias (estilo planilha)
 > Tire um print da aplicação (de preferência com a hierarquia de exemplo ou uma sua), salve como **`docs/screenshots/tela-principal.png`** e faça commit.  
 > Dicas: use **“Preencher exemplo”** + **“Aplicar hierarquia”** antes do print; PNG ou JPG com largura razoável (ex.: 1400–1800 px) costuma ficar legível no README.
 
-### Imagens extras (opcional)
-
-Você pode enriquecer o README com mais arquivos na mesma pasta, por exemplo:
-
-| Arquivo sugerido | Conteúdo |
-|------------------|----------|
-| `docs/screenshots/modo-escuro.png` | Mesma tela no tema escuro |
-| `docs/screenshots/pagina-inteira.png` | Modo “Relatório em página inteira” ativo |
-| `docs/screenshots/pdf-spinner.png` | Ícone de carregamento ao gerar PDF |
-
-Depois é só acrescentar novas linhas `![descrição](docs/screenshots/arquivo.png)` em uma seção **Galeria** abaixo.
-
 ---
 
 ## Sumário

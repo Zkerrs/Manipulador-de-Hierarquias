@@ -10,15 +10,3 @@ Coloque aqui as imagens referenciadas em [`../../README.md`](../../README.md).
 4. Salve como **`tela-principal.png`** nesta pasta (`docs/screenshots/`).
 
 Formatos aceitos no GitHub: **PNG** ou **JPEG**. O README usa `tela-principal.png` — se usar `.jpg`, altere a extensão no `README.md` na raiz.
-
-## Opcional
-
-- `modo-escuro.png` — tema escuro  
-- `pagina-inteira.png` — modo relatório em página inteira  
-- `pdf-spinner.png` — barra com spinner ao exportar PDF  
-
-Depois adicione no `README.md` linhas no formato:
-
-```markdown
-![Descrição curta](docs/screenshots/seu-arquivo.png)
-```
