@@ -46,10 +46,6 @@
       </div>
       <div class="toolbar panel-controls">
         <div class="toolbar-group">
-          <button class="btn primary" id="expandAll">Expandir tudo</button>
-          <button class="btn" id="collapseAll">Recolher tudo</button>
-        </div>
-        <div class="toolbar-group">
           <button class="btn" id="fillExample">Preencher exemplo</button>
           <button class="btn" id="exportExcel">Exportar Excel</button>
           <button class="btn" id="validateHierarchy">Validar hierarquia</button>
@@ -101,18 +97,30 @@
       </div>
     </div>
 
-    <div class="table-area">
-      <table class="report-table">
-        <thead>
-          <tr id="monthRow">
-            <th>Mês</th>
-          </tr>
-          <tr id="headerRow">
-            <th>Ano/Mês</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
+    <div id="reportFullscreenRoot" class="report-fullscreen-root">
+      <div class="report-view-toolbar">
+        <div class="report-view-toolbar-actions">
+          <button type="button" class="btn primary" id="expandAll">Expandir tudo</button>
+          <button type="button" class="btn" id="collapseAll">Recolher tudo</button>
+        </div>
+        <button type="button" class="btn primary btn-report-fs" id="toggleReportFillPage" aria-label="Usar a página inteira só para o relatório">
+          <i class="fa-solid fa-maximize" id="toggleReportFillPageIcon" aria-hidden="true"></i>
+          <span id="toggleReportFillPageLabel">Relatório em página inteira</span>
+        </button>
+      </div>
+      <div class="table-area">
+        <table class="report-table">
+          <thead>
+            <tr id="monthRow">
+              <th>Mês</th>
+            </tr>
+            <tr id="headerRow">
+              <th>Ano/Mês</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 

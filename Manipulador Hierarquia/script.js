@@ -86,7 +86,11 @@ const I18N = {
     month: "Mes",
     indicator: "Ano/Mês",
     items: "itens",
-    months: ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+    months: ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+    btnReportFillPage: "Relatório em página inteira",
+    btnReportExitFillPage: "Voltar à visualização normal",
+    ariaReportFillPage: "Usar a página inteira só para o relatório",
+    ariaReportExitFillPage: "Sair do modo página inteira e mostrar importação e ferramentas"
   },
   en: {
     title: "Hierarchy Manager",
@@ -116,12 +120,41 @@ const I18N = {
     month: "Month",
     indicator: "Year/Month",
     items: "items",
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    btnReportFillPage: "Report fills the page",
+    btnReportExitFillPage: "Back to normal view",
+    ariaReportFillPage: "Use the full page for the report only",
+    ariaReportExitFillPage: "Leave full-page report mode and show import and tools"
   }
 };
 
 function t(chave) {
   return I18N[idiomaAtual][chave] ?? chave;
+}
+
+function relatorioPaginaInteiraAtivo() {
+  return document.body.classList.contains("report-fill-page");
+}
+
+function atualizarBarraModoRelatorioPagina() {
+  const btn = document.getElementById("toggleReportFillPage");
+  const icon = document.getElementById("toggleReportFillPageIcon");
+  const label = document.getElementById("toggleReportFillPageLabel");
+  const ativo = relatorioPaginaInteiraAtivo();
+  if (icon) {
+    icon.classList.remove("fa-maximize", "fa-minimize");
+    icon.classList.add(ativo ? "fa-minimize" : "fa-maximize");
+  }
+  if (label) label.textContent = ativo ? t("btnReportExitFillPage") : t("btnReportFillPage");
+  if (btn) {
+    btn.setAttribute("aria-label", ativo ? t("ariaReportExitFillPage") : t("ariaReportFillPage"));
+    btn.classList.toggle("primary", !ativo);
+  }
+}
+
+function definirRelatorioPaginaInteira(ativo) {
+  document.body.classList.toggle("report-fill-page", ativo);
+  atualizarBarraModoRelatorioPagina();
 }
 
 function aplicarIdioma(idioma) {
@@ -161,6 +194,8 @@ function aplicarIdioma(idioma) {
   if (searchDescInput) searchDescInput.placeholder = t("searchDescPh");
   const validationTitle = document.querySelector("#validationModal .modal-title");
   if (validationTitle) validationTitle.textContent = t("validationTitle");
+
+  atualizarBarraModoRelatorioPagina();
 
   const labels = document.querySelectorAll(".replace-options label");
   if (labels[0]) labels[0].childNodes[1].nodeValue = ` ${t("labelIds")}`;
@@ -618,16 +653,19 @@ function collectParentNodes(nodes, set) {
   }
 }
 
-document.getElementById("expandAll").addEventListener("click", () => {
+function expandirTudoHierarquia() {
   openNodes.clear();
   collectParentNodes(hierarchy, openNodes);
   render();
-});
+}
 
-document.getElementById("collapseAll").addEventListener("click", () => {
+function recolherTudoHierarquia() {
   openNodes.clear();
   render();
-});
+}
+
+document.getElementById("expandAll").addEventListener("click", expandirTudoHierarquia);
+document.getElementById("collapseAll").addEventListener("click", recolherTudoHierarquia);
 
 document.getElementById("applyHierarchy").addEventListener("click", () => {
   const status = document.getElementById("importStatus");
@@ -728,9 +766,23 @@ replaceModal.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && replaceModal.classList.contains("show")) {
+  if (event.key !== "Escape") return;
+  if (replaceModal.classList.contains("show")) {
     fecharModalSubstituicao();
+    return;
   }
+  const modalValidacaoEsc = document.getElementById("validationModal");
+  if (modalValidacaoEsc && modalValidacaoEsc.classList.contains("show")) {
+    modalValidacaoEsc.classList.remove("show");
+    modalValidacaoEsc.setAttribute("aria-hidden", "true");
+    return;
+  }
+  if (!relatorioPaginaInteiraAtivo()) return;
+  const alvo = event.target;
+  const tag = alvo && alvo.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || alvo?.isContentEditable) return;
+  event.preventDefault();
+  definirRelatorioPaginaInteira(false);
 });
 
 document.getElementById("replaceAll").addEventListener("click", () => {
@@ -991,6 +1043,13 @@ const botaoIdioma = document.getElementById("toggleLanguage");
 if (botaoIdioma) {
   botaoIdioma.addEventListener("click", () => {
     aplicarIdioma(idiomaAtual === "pt" ? "en" : "pt");
+  });
+}
+
+const toggleReportFill = document.getElementById("toggleReportFillPage");
+if (toggleReportFill) {
+  toggleReportFill.addEventListener("click", () => {
+    definirRelatorioPaginaInteira(!relatorioPaginaInteiraAtivo());
   });
 }
 

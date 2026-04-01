@@ -23,6 +23,32 @@ body {
   min-height: 100vh;
 }
 
+body.report-fill-page {
+  padding: 0;
+  overflow: hidden;
+}
+
+body.report-fill-page .wrap {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  border-width: 0;
+}
+
+body.report-fill-page .header,
+body.report-fill-page .top-panels {
+  display: none;
+}
+
+body.report-fill-page .report-fullscreen-root {
+  margin-top: 0;
+  flex: 1;
+  min-height: 0;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
 .wrap {
   width: calc(100vw - 36px);
   height: calc(100vh - 36px);
@@ -178,8 +204,39 @@ body {
   margin-left: 0;
 }
 
+.report-fullscreen-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.report-view-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.report-view-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-report-fs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .table-area { overflow: auto; height: 100%; flex: 1; }
-.table-area { margin-top: 6px; }
 
 .report-table {
   border-collapse: separate;
