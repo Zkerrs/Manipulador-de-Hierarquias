@@ -90,7 +90,15 @@ const I18N = {
     btnReportFillPage: "Relatório em página inteira",
     btnReportExitFillPage: "Voltar à visualização normal",
     ariaReportFillPage: "Usar a página inteira só para o relatório",
-    ariaReportExitFillPage: "Sair do modo página inteira e mostrar importação e ferramentas"
+    ariaReportExitFillPage: "Sair do modo página inteira e mostrar importação e ferramentas",
+    btnExportPdf: "Baixar PDF do relatório",
+    btnExportPdfBusy: "Gerando PDF…",
+    ariaExportPdf: "Baixar uma imagem do relatório em arquivo PDF",
+    pdfErrEmpty: "Não há linhas no relatório para exportar.",
+    pdfErrLibs: "Bibliotecas de PDF não carregaram. Verifique a conexão.",
+    pdfErrGeneric: "Não foi possível gerar o PDF.",
+    pdfOk: "PDF do relatório baixado.",
+    pdfSpinnerStatus: "Gerando PDF, aguarde"
   },
   en: {
     title: "Hierarchy Manager",
@@ -124,7 +132,15 @@ const I18N = {
     btnReportFillPage: "Report fills the page",
     btnReportExitFillPage: "Back to normal view",
     ariaReportFillPage: "Use the full page for the report only",
-    ariaReportExitFillPage: "Leave full-page report mode and show import and tools"
+    ariaReportExitFillPage: "Leave full-page report mode and show import and tools",
+    btnExportPdf: "Download report PDF",
+    btnExportPdfBusy: "Generating PDF…",
+    ariaExportPdf: "Download a snapshot of the report as a PDF file",
+    pdfErrEmpty: "There are no rows in the report to export.",
+    pdfErrLibs: "PDF libraries failed to load. Check your connection.",
+    pdfErrGeneric: "Could not generate the PDF.",
+    pdfOk: "Report PDF downloaded.",
+    pdfSpinnerStatus: "Generating PDF, please wait"
   }
 };
 
@@ -194,6 +210,15 @@ function aplicarIdioma(idioma) {
   if (searchDescInput) searchDescInput.placeholder = t("searchDescPh");
   const validationTitle = document.querySelector("#validationModal .modal-title");
   if (validationTitle) validationTitle.textContent = t("validationTitle");
+
+  const pdfBtn = document.getElementById("exportReportPdf");
+  const pdfLabel = document.getElementById("exportReportPdfLabel");
+  if (pdfBtn && pdfLabel && !pdfBtn.classList.contains("report-pdf-busy")) {
+    pdfLabel.textContent = t("btnExportPdf");
+  }
+  if (pdfBtn) pdfBtn.setAttribute("aria-label", t("ariaExportPdf"));
+  const pdfSpinner = document.getElementById("exportReportPdfSpinner");
+  if (pdfSpinner) pdfSpinner.setAttribute("aria-label", t("pdfSpinnerStatus"));
 
   atualizarBarraModoRelatorioPagina();
 
@@ -327,6 +352,24 @@ function obterMatrizDaGrade() {
     }
   }
   return linhas;
+}
+
+function obterLinhasParaExportacaoHierarquia() {
+  const linhasGrade = obterMatrizDaGrade();
+  return linhasGrade.length
+    ? linhasGrade
+    : itensDaHierarquia.map((item) => [item.id, item.label, item.parentId ?? "<root>"]);
+}
+
+function obterNomeBaseArquivoHierarquia(linhasJaCarregadas) {
+  const linhas = linhasJaCarregadas ?? obterLinhasParaExportacaoHierarquia();
+  const descricaoPrimeiro = (linhas[0]?.[1] || "hierarquia")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .trim()
+    .replace(/\s+/g, "_");
+  return descricaoPrimeiro || "hierarquia";
 }
 
 function normalizarMatriz(matriz) {
@@ -664,6 +707,126 @@ function recolherTudoHierarquia() {
   render();
 }
 
+function obterConstrutorJsPDF() {
+  return window.jspdf?.jsPDF || window.jsPDF;
+}
+
+function montarNomeArquivoPdfRelatorio() {
+  return `${obterNomeBaseArquivoHierarquia()}_Hierarquia.pdf`;
+}
+
+function adicionarCanvasAoPdfPaisagem(canvas, pdf) {
+  const imgData = canvas.toDataURL("image/png", 1.0);
+  const margin = 10;
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+  const pageInnerH = pdfH - 2 * margin;
+  const imgWidthMm = pdfW - 2 * margin;
+  const imgHeightMm = (canvas.height / canvas.width) * imgWidthMm;
+
+  let heightLeft = imgHeightMm;
+  let y = margin;
+  pdf.addImage(imgData, "PNG", margin, y, imgWidthMm, imgHeightMm);
+  heightLeft -= pageInnerH;
+
+  while (heightLeft > 0) {
+    y = margin - (imgHeightMm - heightLeft);
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", margin, y, imgWidthMm, imgHeightMm);
+    heightLeft -= pageInnerH;
+  }
+}
+
+async function exportarRelatorioComoPdf() {
+  const area = document.querySelector(".table-area");
+  const tbody = document.getElementById("rows");
+  const btn = document.getElementById("exportReportPdf");
+  const labelSpan = document.getElementById("exportReportPdfLabel");
+  const spinner = document.getElementById("exportReportPdfSpinner");
+  const popupErro = document.getElementById("popupErro");
+  const popupSucesso = document.getElementById("popupSucesso");
+
+  const toastErro = (msg) => {
+    if (!popupErro) return;
+    popupSucesso?.classList.remove("show");
+    popupErro.textContent = msg;
+    popupErro.classList.add("show");
+    clearTimeout(toastErro._t);
+    toastErro._t = setTimeout(() => popupErro.classList.remove("show"), 4200);
+  };
+  const toastOk = (msg) => {
+    if (!popupSucesso) return;
+    popupErro?.classList.remove("show");
+    popupSucesso.textContent = msg;
+    popupSucesso.classList.add("show");
+    clearTimeout(toastOk._t);
+    toastOk._t = setTimeout(() => popupSucesso.classList.remove("show"), 3200);
+  };
+
+  if (!area || !tbody || !btn) return;
+  if (!tbody.children.length) {
+    toastErro(t("pdfErrEmpty"));
+    return;
+  }
+  const JsPDF = obterConstrutorJsPDF();
+  if (typeof html2canvas === "undefined" || typeof JsPDF !== "function") {
+    toastErro(t("pdfErrLibs"));
+    return;
+  }
+
+  const textoNormal = t("btnExportPdf");
+  const textoBusy = t("btnExportPdfBusy");
+  btn.classList.add("report-pdf-busy");
+  btn.setAttribute("aria-busy", "true");
+  if (labelSpan) labelSpan.textContent = textoBusy;
+  if (spinner) spinner.hidden = false;
+
+  const escuro = document.body.classList.contains("dark");
+  const bg = escuro ? "#22272f" : "#ffffff";
+
+  try {
+    const w = area.scrollWidth;
+    const h = area.scrollHeight;
+    const canvas = await html2canvas(area, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: w,
+      height: h,
+      windowWidth: w,
+      windowHeight: h,
+      scrollX: 0,
+      scrollY: 0,
+      backgroundColor: bg,
+      onclone(clonedDoc) {
+        const cloneArea = clonedDoc.querySelector(".table-area");
+        if (!cloneArea) return;
+        cloneArea.style.overflow = "visible";
+        cloneArea.style.height = "auto";
+        cloneArea.style.maxHeight = "none";
+        cloneArea.querySelectorAll(".report-table th, .report-table td").forEach((cell) => {
+          cell.style.position = "static";
+          cell.style.left = "auto";
+          cell.style.top = "auto";
+          cell.style.boxShadow = "none";
+        });
+      }
+    });
+
+    const pdf = new JsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    adicionarCanvasAoPdfPaisagem(canvas, pdf);
+    pdf.save(montarNomeArquivoPdfRelatorio());
+    toastOk(t("pdfOk"));
+  } catch {
+    toastErro(t("pdfErrGeneric"));
+  } finally {
+    btn.classList.remove("report-pdf-busy");
+    btn.removeAttribute("aria-busy");
+    if (labelSpan) labelSpan.textContent = textoNormal;
+    if (spinner) spinner.hidden = true;
+  }
+}
+
 document.getElementById("expandAll").addEventListener("click", expandirTudoHierarquia);
 document.getElementById("collapseAll").addEventListener("click", recolherTudoHierarquia);
 
@@ -970,11 +1133,7 @@ document.getElementById("exportExcel").addEventListener("click", () => {
   const status = document.getElementById("importStatus");
   const popupErro = document.getElementById("popupErro");
   const popupSucesso = document.getElementById("popupSucesso");
-  const linhasGrade = obterMatrizDaGrade();
-
-  const linhasParaExportar = linhasGrade.length
-    ? linhasGrade
-    : itensDaHierarquia.map((item) => [item.id, item.label, item.parentId ?? "<root>"]);
+  const linhasParaExportar = obterLinhasParaExportacaoHierarquia();
 
   if (!linhasParaExportar.length) {
     status.textContent = "Erro: nao ha dados para exportar.";
@@ -1001,14 +1160,7 @@ document.getElementById("exportExcel").addEventListener("click", () => {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Hierarquia");
 
-  const descricaoPrimeiro = (linhasParaExportar[0]?.[1] || "hierarquia")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[\\/:*?"<>|]/g, "")
-    .trim()
-    .replace(/\s+/g, "_");
-  const nomeBase = descricaoPrimeiro || "hierarquia";
-  const nomeArquivo = `${nomeBase}_Hierarquia.xlsx`;
+  const nomeArquivo = `${obterNomeBaseArquivoHierarquia(linhasParaExportar)}_Hierarquia.xlsx`;
   XLSX.writeFile(workbook, nomeArquivo);
   status.textContent = `Excel exportado com sucesso: ${nomeArquivo}`;
 });
@@ -1050,6 +1202,13 @@ const toggleReportFill = document.getElementById("toggleReportFillPage");
 if (toggleReportFill) {
   toggleReportFill.addEventListener("click", () => {
     definirRelatorioPaginaInteira(!relatorioPaginaInteiraAtivo());
+  });
+}
+
+const exportReportPdfBtn = document.getElementById("exportReportPdf");
+if (exportReportPdfBtn) {
+  exportReportPdfBtn.addEventListener("click", () => {
+    exportarRelatorioComoPdf();
   });
 }
 

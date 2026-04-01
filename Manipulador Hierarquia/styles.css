@@ -230,6 +230,44 @@ body.report-fill-page .report-fullscreen-root {
   gap: 10px;
 }
 
+.report-view-toolbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.export-pdf-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.export-pdf-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.export-pdf-spinner[hidden] {
+  display: none !important;
+}
+
+body.dark .export-pdf-spinner {
+  color: #60a5fa;
+}
+
+button.btn.report-pdf-busy {
+  opacity: 0.75;
+  pointer-events: none;
+  cursor: wait;
+}
+
 .btn-report-fs {
   display: inline-flex;
   align-items: center;

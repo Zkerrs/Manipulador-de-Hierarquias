@@ -103,10 +103,21 @@
           <button type="button" class="btn primary" id="expandAll">Expandir tudo</button>
           <button type="button" class="btn" id="collapseAll">Recolher tudo</button>
         </div>
+        <div class="report-view-toolbar-right">
+          <div class="export-pdf-group">
+            <button type="button" class="btn btn-report-fs" id="exportReportPdf" aria-label="Baixar relatório em PDF">
+              <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+              <span id="exportReportPdfLabel">Baixar PDF do relatório</span>
+            </button>
+            <span id="exportReportPdfSpinner" class="export-pdf-spinner" hidden role="status">
+              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            </span>
+          </div>
         <button type="button" class="btn primary btn-report-fs" id="toggleReportFillPage" aria-label="Usar a página inteira só para o relatório">
           <i class="fa-solid fa-maximize" id="toggleReportFillPageIcon" aria-hidden="true"></i>
           <span id="toggleReportFillPageLabel">Relatório em página inteira</span>
         </button>
+        </div>
       </div>
       <div class="table-area">
         <table class="report-table">
@@ -125,6 +136,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
