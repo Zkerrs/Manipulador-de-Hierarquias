@@ -4,15 +4,7 @@ Ferramenta web **100% no navegador** para importar hierarquias (estilo planilha)
 
 > **English (short):** Single-page app to paste hierarchies from Excel, expand/collapse tree branches, validate parents, export hierarchy to `.xlsx` and a visual snapshot of the report to `.pdf`, with light/dark theme and PT/EN UI.
 
----
-
-## Captura de tela principal
-
-![Tela principal — grade de importação, ferramentas e relatório hierárquico](docs/screenshots/tela-principal.png)
-
-> **A imagem acima só aparece no GitHub depois que você adicionar o arquivo.**  
-> Tire um print da aplicação (de preferência com a hierarquia de exemplo ou uma sua), salve como **`docs/screenshots/tela-principal.png`** e faça commit.  
-> Dicas: use **“Preencher exemplo”** + **“Aplicar hierarquia”** antes do print; PNG ou JPG com largura razoável (ex.: 1400–1800 px) costuma ficar legível no README.
+![Manipulador de Hierarquia — importação, ferramentas e relatório (tema escuro, hierarquia de exemplo)](docs/screenshots/tela-principal.png)
 
 ---
 
